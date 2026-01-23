@@ -1,6 +1,8 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
-import 'package:uni_attend/login_screen.dart';
+import 'package:get/get.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:uni_attend/src/app/routes/app_routes.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -14,11 +16,23 @@ class _SplashScreenState extends State<SplashScreen> {
   void initState() {
     super.initState();
     Timer(const Duration(seconds: 2), () {
-      Navigator.of(context).pushReplacement(
-        MaterialPageRoute(
-          builder: (context) => const LoginScreen(),
-        ),
-      );
+      final user = Supabase.instance.client.auth.currentUser;
+      if (user != null) {
+        // Check role if needed, or default to Dashboard.
+        // For robustness, checking metadata or profile is ideal, but for now assuming Student or redirecting to generic dashboard.
+        // User asked: "if the student is login then it should redirect to the dashboard screen".
+        // We can check metadata like in login controller if possible, or just go to Dashboard.
+        // Let's copy the logic from LoginController regarding role if possible, or just go to Dashboard.
+        final role = user.userMetadata?['role']?.toString().toLowerCase();
+        if (role == 'teacher') {
+          Get.offAllNamed(Routes.TEACHER_DASHBOARD);
+        } else {
+          // Default to student dashboard
+          Get.offAllNamed(Routes.DASHBOARD);
+        }
+      } else {
+        Get.offAllNamed(Routes.LOGIN);
+      }
     });
   }
 
