@@ -28,13 +28,13 @@ class AuthRepository {
     required String password,
   }) async {
     try {
-      await _supabase.auth.updateUser(
-        UserAttributes(
-          data: {
-            'role': 'teacher',
-          },
-        ),
-      );
+      // await _supabase.auth.updateUser(
+      //   UserAttributes(
+      //     data: {
+      //       'role': 'student',
+      //     },
+      //   ),
+      // );
       return await _supabase.auth.signInWithPassword(
         email: email,
         password: password,

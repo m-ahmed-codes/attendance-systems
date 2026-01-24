@@ -10,6 +10,9 @@ import 'package:uni_attend/src/app/Screens/mark_attendance/views/review_submissi
 import 'package:uni_attend/src/app/Screens/mark_attendance/views/attendance_success_view.dart';
 import 'package:uni_attend/src/app/Screens/teacherflow/views/teacher_dashboard_view.dart';
 import 'package:uni_attend/src/app/Screens/teacherflow/views/attendance_management_view.dart';
+import 'package:uni_attend/src/app/Screens/profile/views/face_scan_view.dart';
+import 'package:uni_attend/src/app/Screens/profile/views/scan_success_view.dart';
+import 'package:uni_attend/src/app/Screens/mark_attendance/views/attendance_verification_result_view.dart';
 
 class AppPages {
   static const INITIAL = Routes.SPLASH;
@@ -47,5 +50,12 @@ class AppPages {
     GetPage(
         name: Routes.ATTENDANCE_MANAGEMENT,
         page: () => const AttendanceManagementView()),
+    GetPage(name: Routes.FACE_REGISTRATION, page: () => const FaceScanView()),
+    GetPage(
+        name: Routes.FACE_REGISTRATION_SUCCESS,
+        page: () => const ScanSuccessView()),
+    GetPage(
+        name: Routes.ATTENDANCE_VERIFICATION_RESULT,
+        page: () => const AttendanceVerificationResultView()),
   ];
 }

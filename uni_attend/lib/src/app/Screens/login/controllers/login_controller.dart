@@ -54,7 +54,7 @@ class LoginController extends GetxController {
 
       // print("Login Controller: ${passwordController.text}");
       final user = response.user;
-      print("user: ${user}");
+      print("response: ${response}");
 
       if (user != null) {
         final role = user.userMetadata?['role']?.toString().toLowerCase();
@@ -77,6 +77,8 @@ class LoginController extends GetxController {
         }
       }
     } on AuthException catch (e) {
+      print("eeeeeeeeeeeeee: ${e}");
+
       Get.snackbar(
         'Login Failed',
         e.message,

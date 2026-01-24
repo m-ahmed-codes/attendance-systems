@@ -14,7 +14,7 @@ class StudentRepository {
     try {
       final response = await _supabase
           .from('students')
-          .select('full_name, roll_number, department')
+          .select('full_name, roll_number, department, face_embedding')
           .eq('id', userID.id)
           .maybeSingle();
 
@@ -24,11 +24,68 @@ class StudentRepository {
         // Phone might not be in DB, so we can leave it or check if user metadata has it
         response['phone'] = userID.phone ?? '--';
       }
-      // print("Response: ${response}");
       return response;
     } catch (e) {
       print("Error: ${e}");
       rethrow;
+    }
+  }
+
+  /// Updates the student's face embedding in Supabase.
+  Future<void> updateFaceEmbedding(List<double> embedding) async {
+    final studentId = _supabase.auth.currentUser!.id;
+    try {
+      await _supabase
+          .from('students')
+          .update({'face_embedding': embedding}).eq('id', studentId);
+    } catch (e) {
+      print("Error updating face embedding: $e");
+      rethrow;
+    }
+  }
+
+  /// Inserts a new attendance record for the student.
+  Future<void> markAttendanceRecord({
+    required String courseId,
+    required String sessionId,
+    required double latitude,
+    required double longitude,
+    String status = 'present',
+  }) async {
+    final studentId = _supabase.auth.currentUser!.id;
+    try {
+      await _supabase.from('attendance').insert({
+        'student_id': studentId,
+        'course_id': courseId,
+        'session_id': sessionId,
+        'status': status,
+        'source': 'bystudent',
+        'latitude': latitude,
+        'longitude': longitude,
+        'date': DateTime.now().toIso8601String().split('T')[0],
+        'marked_at': DateTime.now().toIso8601String(),
+      });
+    } catch (e) {
+      print("Error marking attendance: $e");
+      rethrow;
+    }
+  }
+
+  /// Checks if the student has already marked attendance for a session.
+  Future<bool> checkIfAttendanceAlreadyMarked(String sessionId) async {
+    final studentId = _supabase.auth.currentUser!.id;
+    try {
+      final response = await _supabase
+          .from('attendance')
+          .select('id')
+          .eq('student_id', studentId)
+          .eq('session_id', sessionId)
+          .maybeSingle();
+
+      return response != null;
+    } catch (e) {
+      print("Error checking attendance: $e");
+      return false;
     }
   }
 

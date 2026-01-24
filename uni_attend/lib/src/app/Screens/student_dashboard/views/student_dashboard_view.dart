@@ -56,129 +56,136 @@ class StudentDashboardView extends GetView<StudentDashboardController> {
         if (controller.isLoading.value) {
           return const Center(child: CircularProgressIndicator());
         }
-        return SingleChildScrollView(
-          padding: const EdgeInsets.all(24.0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // Header
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Obx(() => Text(
-                            'Hi, ${controller.studentName.value}',
-                            style: const TextStyle(
-                              fontSize: 24,
-                              fontWeight: FontWeight.w800,
-                              color: Color(0xFF101922),
-                            ),
-                          )),
-                      const SizedBox(height: 4),
-                      Text(
-                        '${controller.getFormattedDateTime()}', // Fixed date per screenshot, normally dynamic
-                        style: TextStyle(
-                          fontSize: 14,
-                          color: Colors.grey[600],
-                          fontWeight: FontWeight.w500,
+        return RefreshIndicator(
+          onRefresh: () => controller.fetchDashboardData(),
+          color: const Color(0xFF137fec),
+          child: SingleChildScrollView(
+            physics: const AlwaysScrollableScrollPhysics(),
+            padding: const EdgeInsets.all(24.0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Header
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Obx(() => Text(
+                              'Hi, ${controller.studentName.value}',
+                              style: const TextStyle(
+                                fontSize: 24,
+                                fontWeight: FontWeight.w800,
+                                color: Color(0xFF101922),
+                              ),
+                            )),
+                        const SizedBox(height: 4),
+                        Text(
+                          '${controller.getFormattedDateTime()}', // Fixed date per screenshot, normally dynamic
+                          style: TextStyle(
+                            fontSize: 14,
+                            color: Colors.grey[600],
+                            fontWeight: FontWeight.w500,
+                          ),
                         ),
+                      ],
+                    ),
+                    Container(
+                      padding: const EdgeInsets.all(10),
+                      decoration: const BoxDecoration(
+                        color: Colors.white,
+                        shape: BoxShape.circle,
                       ),
-                    ],
-                  ),
-                  Container(
-                    padding: const EdgeInsets.all(10),
-                    decoration: const BoxDecoration(
-                      color: Colors.white,
-                      shape: BoxShape.circle,
+                      child: const Icon(Icons.notifications,
+                          color: Colors.black87),
                     ),
-                    child:
-                        const Icon(Icons.notifications, color: Colors.black87),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 24),
+                  ],
+                ),
+                const SizedBox(height: 24),
 
-              // Student Card
-              Obx(() => StudentInfoCard(
-                    name: controller.fullName.value,
-                    rollNo: controller.rollNo.value,
-                    department: controller.department.value,
-                  )),
+                // Student Card
+                Obx(() => StudentInfoCard(
+                      name: controller.fullName.value,
+                      rollNo: controller.rollNo.value,
+                      department: controller.department.value,
+                    )),
 
-              const SizedBox(height: 24),
+                const SizedBox(height: 24),
 
-              // Stats Row
-              Row(
-                children: [
-                  Obx(() => StatsCard(
-                        label: 'Attendance',
-                        value: '${controller.attendancePercentage.value}%',
-                        subtext: 'Overall',
-                        icon: Icons.pie_chart, // Or similar circular indicator
-                        iconColor: const Color(0xFF137fec),
-                      )),
-                  const SizedBox(width: 16),
-                  Obx(() => StatsCard(
-                        label: 'Alerts',
-                        value: '${controller.missingAlerts.value}',
-                        subtext: 'Missing',
-                        icon: Icons.warning_amber_rounded,
-                        iconColor: Colors.orange,
-                      )),
-                ],
-              ),
+                // Stats Row
+                Row(
+                  children: [
+                    Obx(() => StatsCard(
+                          label: 'Attendance',
+                          value: '${controller.attendancePercentage.value}%',
+                          subtext: 'Overall',
+                          icon:
+                              Icons.pie_chart, // Or similar circular indicator
+                          iconColor: const Color(0xFF137fec),
+                        )),
+                    const SizedBox(width: 16),
+                    Obx(() => StatsCard(
+                          label: 'Alerts',
+                          value: '${controller.missingAlerts.value}',
+                          subtext: 'Missing',
+                          icon: Icons.warning_amber_rounded,
+                          iconColor: Colors.orange,
+                        )),
+                  ],
+                ),
 
-              const SizedBox(height: 32),
+                const SizedBox(height: 32),
 
-              // Schedule Header
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  const Text(
-                    'Today\'s Schedule',
-                    style: TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                      color: Color(0xFF101922),
+                // Schedule Header
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    const Text(
+                      'Today\'s Schedule',
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                        color: Color(0xFF101922),
+                      ),
                     ),
-                  ),
-                  TextButton(
-                    onPressed: () {
-                      // Navigate to calendar tab
-                      controller.changeTabIndex(1);
+                    TextButton(
+                      onPressed: () {
+                        // Navigate to calendar tab
+                        controller.changeTabIndex(1);
+                      },
+                      child: const Text('See Schedule'),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 16),
+
+                // Schedule List
+                Obx(() {
+                  return ListView.builder(
+                    shrinkWrap: true,
+                    physics: const NeverScrollableScrollPhysics(),
+                    itemCount: controller.scheduleList.length,
+                    itemBuilder: (context, index) {
+                      final item = controller.scheduleList[index];
+
+                      return ScheduleCard(
+                        subject: item['subject'],
+                        code: item['code'],
+                        type: item['type'],
+                        time: item['time'],
+                        room: item['room'],
+                        professor: item['professor'],
+                        status: item['status'],
+                        opensAt: item['opensAt'],
+                        onMarkAttendance: () =>
+                            controller.markAttendance(index),
+                      );
                     },
-                    child: const Text('See Schedule'),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 16),
-
-              // Schedule List
-              Obx(() {
-                return ListView.builder(
-                  shrinkWrap: true,
-                  physics: const NeverScrollableScrollPhysics(),
-                  itemCount: controller.scheduleList.length,
-                  itemBuilder: (context, index) {
-                    final item = controller.scheduleList[index];
-
-                    return ScheduleCard(
-                      subject: item['subject'],
-                      code: item['code'],
-                      type: item['type'],
-                      time: item['time'],
-                      room: item['room'],
-                      professor: item['professor'],
-                      status: item['status'],
-                      opensAt: item['opensAt'],
-                      onMarkAttendance: () => controller.markAttendance(index),
-                    );
-                  },
-                );
-              }),
-            ],
+                  );
+                }),
+              ],
+            ),
           ),
         );
       }),

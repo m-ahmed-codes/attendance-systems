@@ -13,7 +13,10 @@ class ProfileController extends GetxController {
   final phone = '--'.obs;
 
   final isLoading = false.obs;
-  final isBiometricRegistered = false.obs;
+  final faceEmbedding = Rxn<List<dynamic>>();
+
+  bool get isFaceRegistered =>
+      faceEmbedding.value != null && faceEmbedding.value!.isNotEmpty;
 
   @override
   void onInit() {
@@ -31,6 +34,7 @@ class ProfileController extends GetxController {
         department.value = profile['department'] ?? '--';
         email.value = profile['email'] ?? '--';
         phone.value = profile['phone'] ?? '--';
+        faceEmbedding.value = profile['face_embedding'] as List<dynamic>?;
       }
     } catch (e) {
       Get.snackbar('Error', 'Failed to load profile: $e');
@@ -39,9 +43,8 @@ class ProfileController extends GetxController {
     }
   }
 
-  void registerBiometric() {
-    // Logic to start face registration
-    print('Starting Face Registration...');
+  void registerFace() {
+    Get.toNamed(Routes.FACE_REGISTRATION);
   }
 
   void editProfile() {

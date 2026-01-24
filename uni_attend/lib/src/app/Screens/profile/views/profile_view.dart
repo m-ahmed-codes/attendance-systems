@@ -105,11 +105,14 @@ class ProfileView extends GetView<ProfileController> {
 
               const SizedBox(height: 32),
 
-              // Biometric Card
-              Obx(() => BiometricCard(
-                    isRegistered: controller.isBiometricRegistered.value,
-                    onRegister: controller.registerBiometric,
-                  )),
+              // Biometric Card (Only show if not registered, or allow update?)
+              // Per user request: "if an embedding exists, hide this button"
+              Obx(() => !controller.isFaceRegistered
+                  ? BiometricCard(
+                      isRegistered: controller.isFaceRegistered,
+                      onRegister: controller.registerFace,
+                    )
+                  : const SizedBox.shrink()),
 
               const SizedBox(height: 32),
 

@@ -9,4 +9,8 @@ abstract class Routes {
   static const TEACHER_DASHBOARD = '/teacher-dashboard';
   static const ATTENDANCE_MANAGEMENT = '/attendance-management';
   static const SPLASH = '/splash'; // Assuming splash exists
+  static const FACE_REGISTRATION = '/face-registration';
+  static const FACE_REGISTRATION_SUCCESS = '/face-registration-success';
+  static const ATTENDANCE_VERIFICATION_RESULT =
+      '/attendance-verification-result';
 }

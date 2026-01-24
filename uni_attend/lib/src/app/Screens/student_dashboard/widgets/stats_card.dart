@@ -41,13 +41,17 @@ class StatsCard extends StatelessWidget {
               children: [
                 Icon(icon, size: 20, color: iconColor),
                 const SizedBox(width: 8),
-                Text(
-                  label.toUpperCase(),
-                  style: TextStyle(
-                    fontSize: 12,
-                    fontWeight: FontWeight.bold,
-                    color: iconColor,
-                    letterSpacing: 0.5,
+                Expanded(
+                  child: Text(
+                    label.toUpperCase(),
+                    style: TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.bold,
+                      color: iconColor,
+                      letterSpacing: 0.5,
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
                   ),
                 ),
               ],
@@ -66,11 +70,15 @@ class StatsCard extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(width: 6),
-                Text(
-                  subtext,
-                  style: TextStyle(
-                    fontSize: 13,
-                    color: Colors.grey[500],
+                Flexible(
+                  child: Text(
+                    subtext,
+                    style: TextStyle(
+                      fontSize: 13,
+                      color: Colors.grey[500],
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
                   ),
                 ),
               ],

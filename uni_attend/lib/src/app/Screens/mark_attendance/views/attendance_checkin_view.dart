@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:uni_attend/src/app/Screens/mark_attendance/controllers/mark_attendance_controller.dart';
 
 class AttendanceCheckInView extends GetView<MarkAttendanceController> {
@@ -51,86 +52,97 @@ class AttendanceCheckInView extends GetView<MarkAttendanceController> {
                     borderRadius: BorderRadius.circular(20),
                     border: Border.all(color: Colors.grey[300]!, width: 2),
                   ),
-                  child: Stack(
-                    alignment: Alignment.center,
-                    children: [
-                      Container(
-                        width: 250,
-                        height: 250,
-                        decoration: BoxDecoration(
-                          shape: BoxShape.circle,
-                          color: const Color(0xFF137fec)
-                              .withOpacity(0.1), // Outer ripple
-                          border: Border.all(
-                              color: const Color(0xFF137fec).withOpacity(0.2)),
-                        ),
-                      ),
-                      Container(
-                        width: 150,
-                        height: 150,
-                        decoration: BoxDecoration(
-                          shape: BoxShape.circle,
-                          color: const Color(0xFF137fec)
-                              .withOpacity(0.2), // Inner ripple
-                          border: Border.all(
-                              color: const Color(0xFF137fec).withOpacity(0.3)),
-                        ),
-                      ),
-                      Container(
-                        width: 80,
-                        height: 80,
-                        decoration: const BoxDecoration(
-                            shape: BoxShape.circle,
-                            color: Colors.white,
-                            boxShadow: [
-                              BoxShadow(
-                                color: Colors.black12,
-                                blurRadius: 10,
-                                offset: Offset(0, 4),
-                              )
-                            ]),
-                        child: const Icon(Icons.location_on,
-                            color: Color(0xFF137fec), size: 40),
-                      ),
-                      Positioned(
-                        top: 20,
-                        child: Container(
-                          padding: const EdgeInsets.symmetric(
-                              horizontal: 16, vertical: 8),
-                          decoration: BoxDecoration(
-                            color: Colors.white,
-                            borderRadius: BorderRadius.circular(20),
+                  clipBehavior: Clip.antiAlias,
+                  child: Obx(() {
+                    final pos = controller.currentPosition.value;
+                    final isLocating = controller.isLocating.value;
+                    final status = controller.locationStatus.value;
+
+                    if (isLocating && pos == null) {
+                      return Stack(
+                        alignment: Alignment.center,
+                        children: [
+                          CircularProgressIndicator(
+                            color: const Color(0xFF137fec).withOpacity(0.5),
                           ),
-                          child: Row(
+                          const Positioned(
+                            bottom: 20,
+                            child: Text(
+                              'Waiting for GPS...',
+                              style: TextStyle(color: Colors.grey),
+                            ),
+                          ),
+                        ],
+                      );
+                    }
+
+                    if (pos == null) {
+                      return Center(
+                        child: Padding(
+                          padding: const EdgeInsets.all(20.0),
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
                             children: [
-                              const Icon(Icons.circle,
-                                  size: 8, color: Color(0xFF137fec)),
-                              const SizedBox(width: 8),
-                              Obx(() => Text(
-                                    controller.isLocating.value
-                                        ? 'LOCATING'
-                                        : 'LOCATED',
-                                    style: const TextStyle(
-                                      color: Color(0xFF137fec),
-                                      fontWeight: FontWeight.bold,
-                                      fontSize: 12,
-                                    ),
-                                  )),
+                              const Icon(Icons.location_off,
+                                  color: Colors.red, size: 48),
+                              const SizedBox(height: 12),
+                              Text(
+                                status,
+                                textAlign: TextAlign.center,
+                                style: const TextStyle(color: Colors.red),
+                              ),
+                              const SizedBox(height: 12),
+                              ElevatedButton(
+                                onPressed: controller.startLocationCheck,
+                                child: const Text('Retry'),
+                              ),
                             ],
                           ),
                         ),
+                      );
+                    }
+
+                    final userLatLng = LatLng(pos!.latitude, pos.longitude);
+                    final uniLatLng =
+                        LatLng(controller.uniLat, controller.uniLng);
+
+                    return GoogleMap(
+                      initialCameraPosition: CameraPosition(
+                        target: userLatLng,
+                        zoom: 16,
                       ),
-                      // Coordinates text visual (mock)
-                      Text(
-                        '300  •  300', // Mock coords from screenshot
-                        style: TextStyle(
-                          color: Colors.grey[400],
-                          fontSize: 20,
-                          letterSpacing: 2,
+                      myLocationEnabled: true,
+                      myLocationButtonEnabled: true,
+                      mapType: MapType.normal,
+                      circles: {
+                        Circle(
+                          circleId: const CircleId('uni_radius'),
+                          center: uniLatLng,
+                          radius: controller.uniRadius,
+                          fillColor: const Color(0xFF137fec).withOpacity(0.2),
+                          strokeColor: const Color(0xFF137fec),
+                          strokeWidth: 2,
                         ),
-                      )
-                    ],
-                  ),
+                      },
+                      markers: {
+                        Marker(
+                          markerId: const MarkerId('uni_center'),
+                          position: uniLatLng,
+                          infoWindow: const InfoWindow(title: 'University'),
+                        ),
+                        Marker(
+                          markerId: const MarkerId('user_location'),
+                          position: userLatLng,
+                          infoWindow: const InfoWindow(title: 'You are here'),
+                          icon: BitmapDescriptor.defaultMarkerWithHue(
+                              BitmapDescriptor.hueRed),
+                        ),
+                      },
+                      onMapCreated: (GoogleMapController mapController) {
+                        // Optional: fit bounds to show both user and uni?
+                      },
+                    );
+                  }),
                 ),
               ),
 
@@ -138,25 +150,33 @@ class AttendanceCheckInView extends GetView<MarkAttendanceController> {
 
               // Status Text
               Obx(() => Text(
-                    controller.isLocating.value
-                        ? 'Verifying your location...'
-                        : 'Location Verified',
-                    style: const TextStyle(
+                    controller.locationStatus.value,
+                    style: TextStyle(
                       fontSize: 22,
                       fontWeight: FontWeight.bold,
-                      color: Color(0xFF101922),
+                      color: controller.isInsideUni.value ||
+                              controller.isLocating.value
+                          ? const Color(0xFF101922)
+                          : Colors.red,
                     ),
                   )),
               const SizedBox(height: 12),
-              const Text(
-                'Please stand still while we confirm you are within the Building C lecture hall.',
-                textAlign: TextAlign.center,
-                style: TextStyle(
-                  fontSize: 14,
-                  color: Colors.grey, // 64748B
-                  height: 1.5,
-                ),
-              ),
+              Obx(() => Text(
+                    controller.isInsideUni.value
+                        ? 'Please stand still while we confirm you are within the university premises.'
+                        : controller.isLocating.value
+                            ? 'Please wait while we fetch your location.'
+                            : 'You are outside university premises. Distance: ${controller.distanceFromUni.value.toStringAsFixed(1)}m',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      fontSize: 14,
+                      color: controller.isInsideUni.value ||
+                              controller.isLocating.value
+                          ? Colors.grey
+                          : Colors.red[700],
+                      height: 1.5,
+                    ),
+                  )),
 
               const SizedBox(height: 32),
 
@@ -251,7 +271,8 @@ class AttendanceCheckInView extends GetView<MarkAttendanceController> {
                     width: double.infinity,
                     height: 56,
                     child: ElevatedButton(
-                      onPressed: controller.isLocating.value
+                      onPressed: controller.isLocating.value ||
+                              !controller.isInsideUni.value
                           ? null
                           : controller.proceedToScanFace,
                       style: ElevatedButton.styleFrom(

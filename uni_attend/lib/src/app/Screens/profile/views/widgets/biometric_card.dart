@@ -84,29 +84,29 @@ class BiometricCard extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 20),
-          ElevatedButton(
-            onPressed: onRegister,
-            style: ElevatedButton.styleFrom(
-              backgroundColor: const Color(0xFF137fec),
-              foregroundColor: Colors.white,
-              minimumSize: const Size(double.infinity, 50),
-              elevation: 0,
-              shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12)),
+          if (!isRegistered)
+            ElevatedButton(
+              onPressed: onRegister,
+              style: ElevatedButton.styleFrom(
+                backgroundColor: const Color(0xFF137fec),
+                foregroundColor: Colors.white,
+                minimumSize: const Size(double.infinity, 50),
+                elevation: 0,
+                shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12)),
+              ),
+              child: const Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(Icons.face_retouching_natural, size: 20),
+                  SizedBox(width: 8),
+                  Text(
+                    'Register Face Now',
+                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                  ),
+                ],
+              ),
             ),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                const Icon(Icons.face_retouching_natural, size: 20),
-                const SizedBox(width: 8),
-                Text(
-                  isRegistered ? 'Update Face Data' : 'Register Face Now',
-                  style: const TextStyle(
-                      fontWeight: FontWeight.bold, fontSize: 16),
-                ),
-              ],
-            ),
-          ),
           const SizedBox(height: 16),
           Row(
             mainAxisAlignment: MainAxisAlignment.center,
