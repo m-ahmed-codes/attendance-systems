@@ -191,4 +191,20 @@ class StudentRepository {
       rethrow;
     }
   }
+
+  /// Fetches the university coordinates and radius.
+  Future<Map<String, dynamic>?> getUniversityCoordinates() async {
+    try {
+      final response = await _supabase
+          .from('coordinates')
+          .select('latitude, longitude, radius_meters')
+          .order('created_at', ascending: false)
+          .limit(1)
+          .maybeSingle();
+      return response;
+    } catch (e) {
+      print("Error fetching university coordinates: $e");
+      return null;
+    }
+  }
 }

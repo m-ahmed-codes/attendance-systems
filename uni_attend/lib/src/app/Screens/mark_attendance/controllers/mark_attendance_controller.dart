@@ -14,11 +14,10 @@ class MarkAttendanceController extends GetxController {
   final currentPosition = Rxn<Position>();
   final distanceFromUni = 0.0.obs;
 
-  // University Location (Hardcoded)
-  final double uniLat =
-      24.918930921038022; // 24.8607; // Placeholder: Karachi, Pakistan area
-  final double uniLng = 67.1339365503404; // 67.0011;
-  final double uniRadius = 100.0; // 500 meters radius
+  // University Location (Dynamically fetched)
+  double uniLat = 24.918930921038022;
+  double uniLng = 67.1339365503404;
+  double uniRadius = 100.0;
 
   final StudentRepository _studentRepository = StudentRepository();
   final Rxn<List<dynamic>> faceEmbedding = Rxn<List<dynamic>>();
@@ -58,8 +57,27 @@ class MarkAttendanceController extends GetxController {
       _checkExistingAttendance();
     }
 
-    // Simulate location check start if on check-in screen
+    _initFlow();
+  }
+
+  Future<void> _initFlow() async {
+    await _fetchUniversityCoordinates();
     startLocationCheck();
+  }
+
+  Future<void> _fetchUniversityCoordinates() async {
+    try {
+      final coords = await _studentRepository.getUniversityCoordinates();
+      if (coords != null) {
+        uniLat = (coords['latitude'] as num).toDouble();
+        uniLng = (coords['longitude'] as num).toDouble();
+        uniRadius = (coords['radius_meters'] as num).toDouble();
+        print(
+            'University coordinates updated from DB: $uniLat, $uniLng (Radius: $uniRadius)');
+      }
+    } catch (e) {
+      print('Error fetching university coordinates: $e');
+    }
   }
 
   Future<void> _checkExistingAttendance() async {
