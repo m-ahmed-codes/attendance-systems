@@ -7,39 +7,42 @@ class StudentRepository {
   StudentRepository({SupabaseClient? supabaseClient})
       : _supabase = supabaseClient ?? SupabaseService.client;
 
-  /// Fetches the student's profile including roll number and department.
+  /// Fetches the student's profile.
   Future<Map<String, dynamic>?> getStudentProfile() async {
     final userID = _supabase.auth.currentUser;
-    print("User ID: ${userID!.id}");
+    if (userID == null) return null;
+
     try {
       final response = await _supabase
           .from('students')
-          .select('full_name, roll_number, department, face_embedding')
+          .select('full_name, roll_number, department, face_data')
           .eq('id', userID.id)
           .maybeSingle();
 
       if (response != null) {
-        // Attach email from Auth User
         response['email'] = userID.email;
-        // Phone might not be in DB, so we can leave it or check if user metadata has it
         response['phone'] = userID.phone ?? '--';
       }
       return response;
     } catch (e) {
-      print("Error: ${e}");
+      print("Error fetching student profile: $e");
       rethrow;
     }
   }
 
-  /// Updates the student's face embedding in Supabase.
-  Future<void> updateFaceEmbedding(List<double> embedding) async {
+  /// Updates the student's face embeddings in Supabase.
+  /// Structure: {"embeddings": [[...], [...], [...]]}
+  Future<void> updateFaceEmbeddings(List<List<double>> embeddings) async {
     final studentId = _supabase.auth.currentUser!.id;
     try {
-      await _supabase
-          .from('students')
-          .update({'face_embedding': embedding}).eq('id', studentId);
+      await _supabase.from('students').update({
+        'face_data': {
+          'embeddings': embeddings,
+          'updated_at': DateTime.now().toIso8601String(),
+        }
+      }).eq('id', studentId);
     } catch (e) {
-      print("Error updating face embedding: $e");
+      print("Error updating face embeddings: $e");
       rethrow;
     }
   }
@@ -53,6 +56,11 @@ class StudentRepository {
     String status = 'present',
   }) async {
     final studentId = _supabase.auth.currentUser!.id;
+    print('--- MARKING ATTENDANCE RECORD ---');
+    print('Student ID: $studentId');
+    print('Course ID: $courseId, Session ID: $sessionId');
+    print('Location: ($latitude, $longitude), Status: $status');
+
     try {
       await _supabase.from('attendance').insert({
         'student_id': studentId,
@@ -65,10 +73,12 @@ class StudentRepository {
         'date': DateTime.now().toIso8601String().split('T')[0],
         'marked_at': DateTime.now().toIso8601String(),
       });
+      print('SUCCESS: Attendance record inserted');
     } catch (e) {
-      print("Error marking attendance: $e");
+      print("ERROR: Failed to mark attendance: $e");
       rethrow;
     }
+    print('---------------------------------');
   }
 
   /// Checks if the student has already marked attendance for a session.

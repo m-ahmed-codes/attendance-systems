@@ -196,7 +196,8 @@ class MarkAttendanceController extends GetxController {
     // 1. Check if face is registered
     try {
       final profile = await _studentRepository.getStudentProfile();
-      if (profile == null || profile['face_embedding'] == null) {
+      if (profile == null ||
+          (profile['face_data'] == null && profile['face_embedding'] == null)) {
         Get.snackbar(
           'Face not registered',
           'Please register your face first to mark attendance',
@@ -206,13 +207,15 @@ class MarkAttendanceController extends GetxController {
         return;
       }
 
-      faceEmbedding.value = profile['face_embedding'] as List<dynamic>?;
+      final faceData = profile['face_data'] ??
+          {
+            'embeddings': [profile['face_embedding']]
+          };
 
       // 2. Navigate to face verification for attendance
-      // Passing arguments to the shared/new face scan screen
       Get.toNamed(Routes.FACE_REGISTRATION, arguments: {
         'isVerification': true,
-        'storedEmbedding': faceEmbedding.value,
+        'faceData': faceData,
         'course_id': courseId,
         'session_id': sessionId,
       });

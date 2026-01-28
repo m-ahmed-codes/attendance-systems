@@ -10,7 +10,8 @@ class ScanSuccessView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final Map<String, dynamic> args = Get.arguments;
-    final List<double> embedding = args['embedding'];
+    final List<List<double>> embeddings =
+        args['embeddings'] ?? [args['embedding']];
     final RxBool isSaving = false.obs;
 
     return Scaffold(
@@ -46,7 +47,7 @@ class ScanSuccessView extends StatelessWidget {
                             isSaving.value = true;
                             try {
                               final repo = StudentRepository();
-                              await repo.updateFaceEmbedding(embedding);
+                              await repo.updateFaceEmbeddings(embeddings);
 
                               // Refresh profile
                               if (Get.isRegistered<ProfileController>()) {
